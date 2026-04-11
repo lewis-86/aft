@@ -17,9 +17,9 @@ from aft.github_app.comments import CommentFormatter
 class AFTApp:
     """AFT GitHub App - orchestrates all components."""
 
-    llm_client: LLMClient = field(default_factory=None)
+    llm_client: LLMClient = None
     rule_parser: PolicyRuleParser = field(default_factory=PolicyRuleParser)
-    test_builder: TestBuilder = field(default_factory=None)
+    test_builder: TestBuilder = None
     tester: PytestPlugin = field(default_factory=PytestPlugin)
     comment_formatter: CommentFormatter = field(default_factory=CommentFormatter)
     analyzer_prompt: RuleAnalyzerPrompt = field(default_factory=RuleAnalyzerPrompt)

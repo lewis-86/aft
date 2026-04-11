@@ -51,7 +51,7 @@ class LLMClient:
             messages.append(msg)
         return messages
 
-    async def complete(
+    def complete(
         self,
         prompt: str,
         conversation: list[dict] | None = None,
