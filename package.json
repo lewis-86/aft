@@ -1,0 +1,16 @@
+{
+  "name": "aft-github-app",
+  "version": "0.1.0",
+  "description": "AFT GitHub App - Agent For Testing",
+  "main": "src/github-app/index.js",
+  "scripts": {
+    "start": "probot run ./src/github-app/index.js"
+  },
+  "dependencies": {
+    "probot": "^12.3.0",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  }
+}
