@@ -30,10 +30,17 @@ class TestSuite:
             '',
         ]
         for tc in self.test_cases:
-            lines.append(f'def {tc.name}():')
-            lines.append(f'    """{tc.description}"""')
-            for line in tc.code.split('\n'):
-                lines.append(f'    {line}')
+            # Check if code already contains a function definition
+            if tc.code.strip().startswith('def '):
+                # Code already has def, use it directly (for backward compatibility)
+                for line in tc.code.split('\n'):
+                    lines.append(line)
+            else:
+                # Wrap code in a function definition
+                lines.append(f'def {tc.name}():')
+                lines.append(f'    """{tc.description}"""')
+                for line in tc.code.split('\n'):
+                    lines.append(f'    {line}')
             lines.append('')
         return '\n'.join(lines)
 
