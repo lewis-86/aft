@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 
 
 @dataclass
-class TestCase:
+class PolicyTestCase:
     """Represents a single test case."""
     name: str
     description: str
@@ -14,12 +14,12 @@ class TestCase:
 
 
 @dataclass
-class TestSuite:
+class PolicyTestSuite:
     """Represents a collection of test cases."""
-    test_cases: list[TestCase] = field(default_factory=list)
+    test_cases: list[PolicyTestCase] = field(default_factory=list)
     metadata: dict = field(default_factory=dict)
 
-    def add(self, test_case: TestCase) -> None:
+    def add(self, test_case: PolicyTestCase) -> None:
         self.test_cases.append(test_case)
 
     def to_pytest_code(self) -> str:
@@ -56,7 +56,7 @@ class TestResult:
 
 
 @dataclass
-class TestSuiteResult:
+class PolicyTestSuiteResult:
     """Result of a test suite execution."""
     suite_name: str
     results: list[TestResult] = field(default_factory=list)

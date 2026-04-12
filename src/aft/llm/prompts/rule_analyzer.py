@@ -1,7 +1,6 @@
 """Prompt for analyzing policy rule changes."""
 from __future__ import annotations
-
-from aft.llm.prompts.self_healer import SelfHealerPrompt
+from aft.llm.prompts import json_response_format
 
 
 class RuleAnalyzerPrompt:
@@ -41,4 +40,4 @@ Respond in the following JSON format:
 {rule_diff}
 </diff>
 
-{SelfHealerPrompt._json_format()}"""
+{json_response_format()}"""

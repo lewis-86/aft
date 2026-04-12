@@ -1,5 +1,6 @@
 """Prompt for self-healing failing tests."""
 from __future__ import annotations
+from aft.llm.prompts import json_response_format
 
 
 class SelfHealerPrompt:
@@ -35,12 +36,4 @@ Be conservative: prefer fixing the test only if the implementation is clearly co
 
     @staticmethod
     def _json_format() -> str:
-        return """
-Respond in JSON format:
-{
-  "diagnosis": "What caused the failure",
-  "root_cause": "test_bug|implementation_bug|environment_issue|ambiguous",
-  "fix_required": "Which side needs to change",
-  "proposed_fix": "If test needs fixing, provide the corrected test code",
-  "reasoning": "Why this is the correct diagnosis"
-}"""
+        return json_response_format()

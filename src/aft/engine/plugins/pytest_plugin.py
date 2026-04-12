@@ -4,11 +4,13 @@ import tempfile
 import subprocess
 import time
 from pathlib import Path
-from aft.engine.plugins.types import TestSuite, TestSuiteResult, TestResult
+from aft.engine.plugins.types import PolicyTestSuite as TestSuite, PolicyTestSuiteResult as TestSuiteResult, TestResult
 
 
 class PytestPlugin:
     """Executes test suites using pytest."""
+
+    name: str = "pytest"
 
     def run_suite(self, suite: TestSuite, timeout: int = 300) -> TestSuiteResult:
         """Run a test suite and return results."""

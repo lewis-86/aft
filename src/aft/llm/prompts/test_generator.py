@@ -1,7 +1,6 @@
 """Prompt for generating test cases from policy rules."""
 from __future__ import annotations
-
-from aft.llm.prompts.self_healer import SelfHealerPrompt
+from aft.llm.prompts import json_response_format
 
 
 class TestGeneratorPrompt:
@@ -29,4 +28,4 @@ Include docstrings explaining what each test validates."""
 {rule_description}
 </rule>
 
-{SelfHealerPrompt._json_format()}"""
+{json_response_format()}"""

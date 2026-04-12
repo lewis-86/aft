@@ -1,6 +1,6 @@
 import pytest
 from aft.policy.test_builder import TestBuilder
-from aft.engine.plugins.types import TestCase, TestSuite
+from aft.engine.plugins.types import PolicyTestCase, PolicyTestSuite
 
 
 class TestTestBuilder:
@@ -8,7 +8,7 @@ class TestTestBuilder:
         builder = TestBuilder()
         rule = "Violence content with risk_score > 0.8 should be blocked"
         suite = builder.build_from_rule(rule, count=3)
-        assert isinstance(suite, TestSuite)
+        assert isinstance(suite, PolicyTestSuite)
         assert len(suite.test_cases) == 3
 
     def test_test_case_has_required_fields(self):

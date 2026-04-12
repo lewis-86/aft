@@ -1,6 +1,7 @@
 """Builds test cases from policy rule descriptions."""
 from __future__ import annotations
-from aft.engine.plugins.types import TestCase, TestSuite
+import re
+from aft.engine.plugins.types import PolicyTestCase as TestCase, PolicyTestSuite as TestSuite
 from aft.llm.prompts.test_generator import TestGeneratorPrompt
 
 
@@ -46,7 +47,6 @@ class TestBuilder:
         """Parse LLM output into a TestSuite."""
         # Simple parsing: look for python code blocks
         suite = TestSuite(metadata={"rule": rule_description, "source": "llm"})
-        import re
         code_blocks = re.findall(r'```python\n(.*?)```', llm_output, re.DOTALL)
         if not code_blocks:
             code_blocks = re.findall(r'```\n(.*?)```', llm_output, re.DOTALL)

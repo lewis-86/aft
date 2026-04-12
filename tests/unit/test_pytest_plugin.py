@@ -2,7 +2,7 @@ import pytest
 import tempfile
 import os
 from aft.engine.plugins.pytest_plugin import PytestPlugin
-from aft.engine.plugins.types import TestSuite, TestCase
+from aft.engine.plugins.types import PolicyTestSuite as TestSuite, PolicyTestCase as TestCase
 
 
 class TestPytestPlugin:

@@ -6,7 +6,7 @@ from aft.llm.client import LLMClient, LLMResponse
 from aft.policy.parser import PolicyRuleParser
 from aft.policy.test_builder import TestBuilder
 from aft.engine.plugins.pytest_plugin import PytestPlugin
-from aft.engine.plugins.types import TestSuite
+from aft.engine.plugins.types import PolicyTestSuite as TestSuite
 from aft.llm.prompts.rule_analyzer import RuleAnalyzerPrompt
 
 
