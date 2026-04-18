@@ -1,7 +1,7 @@
 """Observability data store — reads/writes data/pr-{n}.json files."""
 from __future__ import annotations
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -58,6 +58,54 @@ class ObservabilityStore:
                 data = json.loads(f.read_text())
                 results.append(self._from_dict(data))
             except (json.JSONDecodeError, KeyError):
+                continue
+        return results
+
+    def load_recent(self, hours: int = 24) -> list["PRObservationData"]:
+        """Load observations from the last N hours."""
+        self._ensure_data_dir()
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
+        files = sorted(
+            self.data_dir.glob("pr-*.json"),
+            key=lambda p: p.stat().st_mtime,
+            reverse=True,
+        )
+        results = []
+        for f in files:
+            try:
+                data = json.loads(f.read_text())
+                ts = datetime.fromisoformat(data.get("timestamp", "1970-01-01T00:00:00Z").replace("Z", "+00:00"))
+                if ts >= cutoff:
+                    results.append(self._from_dict(data))
+            except (json.JSONDecodeError, KeyError, ValueError):
+                continue
+        return results
+
+    def load_previous_period(self, days: int = 7, offset: int = 0) -> list["PRObservationData"]:
+        """Load observations from a historical period (before the last N days).
+
+        Args:
+            days: number of days in the period
+            offset: how many days to go back before the "last days" boundary
+                   e.g. offset=7 means "7-14 days ago"
+        """
+        self._ensure_data_dir()
+        now = datetime.now(timezone.utc)
+        end_cutoff = now - timedelta(days=offset)
+        start_cutoff = end_cutoff - timedelta(days=days)
+        files = sorted(
+            self.data_dir.glob("pr-*.json"),
+            key=lambda p: p.stat().st_mtime,
+            reverse=True,
+        )
+        results = []
+        for f in files:
+            try:
+                data = json.loads(f.read_text())
+                ts = datetime.fromisoformat(data.get("timestamp", "1970-01-01T00:00:00Z").replace("Z", "+00:00"))
+                if start_cutoff <= ts < end_cutoff:
+                    results.append(self._from_dict(data))
+            except (json.JSONDecodeError, KeyError, ValueError):
                 continue
         return results
 
