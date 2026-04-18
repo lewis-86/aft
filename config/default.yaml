@@ -21,3 +21,34 @@ observability:
   data_dir: "data"
   trend_window: 5
   coverage_warn_threshold: 0.70
+
+alert:
+  enabled: true
+  conditions:
+    coverage_below: 0.70
+    coverage_drop_above: 0.05
+    failures_above: 0
+    duration_spike_above: 0.30
+    self_heal_failed: true
+    composite: "OR"
+  channels:
+    - github_comment
+    - slack
+    - feishu
+  slack_webhook_url: "${SLACK_WEBHOOK_URL}"
+  feishu_webhook_url: "${FEISHU_WEBHOOK_URL}"
+
+ci_gate:
+  enabled: true
+  conditions:
+    coverage_below: 0.70
+    failures_above: 0
+    composite: "OR"
+  fail_on_violation: true
+
+report:
+  default_output:
+    - stdout
+    - github_comment
+  slack_webhook_url: "${SLACK_WEBHOOK_URL}"
+  feishu_webhook_url: "${FEISHU_WEBHOOK_URL}"
