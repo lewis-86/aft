@@ -12,6 +12,10 @@ from aft.engine.plugins.types import PolicyTestSuite as TestSuite, PolicyTestSui
 from aft.llm.prompts.rule_analyzer import RuleAnalyzerPrompt
 from aft.llm.prompts.self_healer import SelfHealerPrompt
 from aft.github_app.comments import CommentFormatter
+from aft.observability.store import ObservabilityStore
+from aft.observability.trends import TrendCalculator
+from aft.observability.coverage import CoverageAnalyzer
+from aft.observability.comments import ObservabilityComment
 
 
 @dataclass
@@ -26,6 +30,10 @@ class AFTApp:
     analyzer_prompt: RuleAnalyzerPrompt = field(default_factory=RuleAnalyzerPrompt)
     healer_prompt: SelfHealerPrompt = field(default_factory=SelfHealerPrompt)
     max_self_heal_retries: int = 2
+    observability_enabled: bool = field(default=True)
+    observability_data_dir: str = field(default="data")
+    observability_trend_window: int = field(default=5)
+    coverage_warn_threshold: float = field(default=0.70)
 
     def __post_init__(self):
         if self.llm_client is None:
@@ -75,7 +83,7 @@ class AFTApp:
         if test_result.failed_count > 0:
             healed, test_result = self._try_self_heal(suite, test_result)
 
-        # 5. Build and post comment
+        # 5. Build comment
         comment = self.comment_formatter.build_full_comment(
             analysis=analysis.content,
             test_results=self.comment_formatter.format_test_results(
@@ -86,6 +94,17 @@ class AFTApp:
             ),
             test_code=suite.to_pytest_code() if test_result.failed_count > 0 else "",
         )
+
+        # 6. Record observability and append trends
+        obs_comment = ""
+        if self.observability_enabled:
+            obs_comment = self._record_observability(
+                payload=payload,
+                test_result=test_result,
+                coverage=suite.metadata.get("coverage", {}),
+                self_healed=healed,
+            )
+            comment = comment + "\n" + obs_comment
 
         if write_comment:
             write_comment(comment)
@@ -140,6 +159,73 @@ class AFTApp:
                 return True, test_result
 
         return False, test_result
+
+    def _record_observability(
+        self,
+        payload: dict,
+        test_result,
+        coverage: dict,
+        self_healed: bool,
+    ) -> str:
+        """Record observability data and return the trends comment section."""
+        from aft.observability.types import PRObservationData
+
+        pr = payload["pull_request"]
+        repo = payload.get("repository", {}).get("full_name", "")
+        diff = payload.get("diff", "")
+
+        # Extract test names from results
+        test_names = [r.name for r in test_result.results]
+
+        # Extract and analyze rule files
+        rule_files = self._extract_rule_files(diff)
+        coverage_analyzer = CoverageAnalyzer()
+        rule_coverage = coverage_analyzer.analyze(
+            rule_files_changed=rule_files,
+            test_names=test_names,
+        )
+
+        # Build observation record
+        obs = PRObservationData(
+            pr_number=pr["number"],
+            repo=repo,
+            branch=pr.get("head", {}).get("ref", ""),
+            author=pr.get("user", {}).get("login", ""),
+            rule_files_changed=rule_files,
+            test_result={
+                "passed": test_result.passed_count,
+                "failed": test_result.failed_count,
+                "skipped": 0,
+                "duration_ms": int(test_result.total_duration_ms),
+            },
+            coverage={
+                "rules_total": coverage.get("rules_total", 0),
+                "rules_covered": coverage.get("rules_covered", 0),
+                "coverage_ratio": coverage.get("coverage_ratio", 0.0),
+            },
+            rule_coverage=rule_coverage,
+            self_healed=self_healed,
+            risk_assessment="",
+        )
+
+        # Save observation
+        store = ObservabilityStore(data_dir=self.observability_data_dir)
+        store.save(obs)
+
+        # Compute trends
+        history = store.load_history(limit=self.observability_trend_window)
+        calc = TrendCalculator(coverage_warn_threshold=self.coverage_warn_threshold)
+        trend_result = calc.compute(obs, history)
+
+        # Render comment
+        renderer = ObservabilityComment()
+        return renderer.render(trend_result)
+
+    def _extract_rule_files(self, diff: str) -> list[str]:
+        """Extract file paths from a unified diff, filtered to likely rule files."""
+        import re
+        paths = re.findall(r'^\+\+\+ b/(.+)$', diff, re.MULTILINE)
+        return [p for p in paths if "rule" in p.lower() or "policy" in p.lower()]
 
     def _apply_heal_response(self, suite: TestSuite, llm_content: str) -> TestSuite:
         """Parse LLM's JSON response and apply test code fixes to the suite.

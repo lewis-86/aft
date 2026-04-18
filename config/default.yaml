@@ -15,3 +15,9 @@ engine:
 policy:
   max_test_cases_per_rule: 10
   self_heal_max_retries: 2
+
+observability:
+  enabled: true
+  data_dir: "data"
+  trend_window: 5
+  coverage_warn_threshold: 0.70
