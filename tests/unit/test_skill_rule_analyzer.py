@@ -1,6 +1,7 @@
 """Tests for SkillRuleAnalyzer."""
 import pytest
 from unittest.mock import patch, MagicMock
+from aft.cli.analyzers.utils import parse_llm_json_response
 from aft.llm.client import LLMClient, LLMResponse
 from aft.cli.analyzers.rule import SkillRuleAnalyzer
 
@@ -48,36 +49,21 @@ class TestSkillRuleAnalyzer:
         assert "test_rule_id" in prompt
         assert "additional context" in prompt
 
-    def test_parse_response_handles_markdown_json(self):
-        """Test _parse_response extracts JSON from markdown code blocks."""
-        mock_client = MagicMock(spec=LLMClient)
-        analyzer = SkillRuleAnalyzer(llm_client=mock_client)
-
-        mock_response = MagicMock(spec=LLMResponse)
-        mock_response.content = '```json\n{"rule_summary": "Test"}\n```'
-
-        result = analyzer._parse_response(mock_response)
+    def test_parse_llm_json_response_handles_markdown_json(self):
+        """Test parse_llm_json_response extracts JSON from markdown code blocks."""
+        content = '```json\n{"rule_summary": "Test"}\n```'
+        result = parse_llm_json_response(content)
         assert result["rule_summary"] == "Test"
 
-    def test_parse_response_handles_plain_json(self):
-        """Test _parse_response handles plain JSON."""
-        mock_client = MagicMock(spec=LLMClient)
-        analyzer = SkillRuleAnalyzer(llm_client=mock_client)
-
-        mock_response = MagicMock(spec=LLMResponse)
-        mock_response.content = '{"rule_summary": "Test"}'
-
-        result = analyzer._parse_response(mock_response)
+    def test_parse_llm_json_response_handles_plain_json(self):
+        """Test parse_llm_json_response handles plain JSON."""
+        content = '{"rule_summary": "Test"}'
+        result = parse_llm_json_response(content)
         assert result["rule_summary"] == "Test"
 
-    def test_parse_response_handles_invalid_json(self):
-        """Test _parse_response handles invalid JSON gracefully."""
-        mock_client = MagicMock(spec=LLMClient)
-        analyzer = SkillRuleAnalyzer(llm_client=mock_client)
-
-        mock_response = MagicMock(spec=LLMResponse)
-        mock_response.content = "This is not JSON"
-
-        result = analyzer._parse_response(mock_response)
+    def test_parse_llm_json_response_handles_invalid_json(self):
+        """Test parse_llm_json_response handles invalid JSON gracefully."""
+        content = "This is not JSON"
+        result = parse_llm_json_response(content)
         assert "error" in result
         assert "raw" in result

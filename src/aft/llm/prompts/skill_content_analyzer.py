@@ -1,6 +1,5 @@
 """Prompt for analyzing Skill-Harness SKILL.md files."""
 from __future__ import annotations
-from aft.llm.prompts import json_response_format
 
 
 class SkillContentAnalyzerPrompt:
@@ -42,6 +41,4 @@ Respond in the following JSON format:
 
 <lint_summary>
 {lint_summary or "(No lint issues)"}
-</lint_summary>
-
-{json_response_format()}"""
+</lint_summary>"""

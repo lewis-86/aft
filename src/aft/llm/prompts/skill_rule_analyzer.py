@@ -1,6 +1,5 @@
 """Prompt for analyzing Skill-Harness rule.yaml files."""
 from __future__ import annotations
-from aft.llm.prompts import json_response_format
 
 
 class SkillRuleAnalyzerPrompt:
@@ -42,6 +41,4 @@ Respond in the following JSON format:
 
 <rule_diff>
 {rule_diff}
-</rule_diff>
-
-{json_response_format()}"""
+</rule_diff>"""
