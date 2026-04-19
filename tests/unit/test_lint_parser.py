@@ -107,7 +107,7 @@ class TestLintReport:
         """Test conversion to PolicyTestSuiteResult when blockers exist (failed)."""
         blocker = LintResult(
             rule_id="required-fields",
-            level="BLOCKER",
+            level=Level.BLOCKER,
             message="missing required field",
         )
         report = LintReport(
