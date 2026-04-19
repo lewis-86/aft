@@ -208,12 +208,14 @@ class AFTApp:
             risk_assessment="",
         )
 
-        # Save observation
+        # Load history BEFORE saving (so current PR isn't included in its own trend)
         store = ObservabilityStore(data_dir=self.observability_data_dir)
+        history = store.load_history(limit=self.observability_trend_window)
+
+        # Save current observation
         store.save(obs)
 
         # Compute trends
-        history = store.load_history(limit=self.observability_trend_window)
         calc = TrendCalculator(coverage_warn_threshold=self.coverage_warn_threshold)
         trend_result = calc.compute(obs, history)
 
