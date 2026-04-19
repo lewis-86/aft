@@ -1,0 +1,66 @@
+# .github/workflows/aft-quality.yml
+name: AFT Quality Gate
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: Get changed files
+        id: changed
+        run: |
+          CHANGED=$(git diff --name-only ${{ github.base_ref }}...HEAD)
+          echo "files=$CHANGED" >> $GITHUB_OUTPUT
+
+      - name: Run linter on changed files
+        run: |
+          mkdir -p lint-results
+          for file in ${{ steps.changed.outputs.files }}; do
+            if [ -f "$file" ] && [[ "$file" == *.md ]]; then
+              echo "Linting $file..."
+              node dist/lint/cli.js "$file" 2>/dev/null || true
+            fi
+          done
+
+      - name: Run AFT Comment
+        if: success() || failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          DIFF=$(git diff ${{ github.base_ref }}...HEAD)
+          node -e "
+            const fs = require('fs');
+            const files = '${{ steps.changed.outputs.files }}'.split('\n').filter(f => f && f.endsWith('.md'));
+            const { Linter } = require('./dist');
+            const linter = new Linter();
+            const results = [];
+            for (const file of files) {
+              try {
+                const report = linter.lintFile(file.trim());
+                results.push(report);
+              } catch(e) {}
+            }
+            const out = results.map(r => JSON.stringify(r)).join('\n');
+            fs.writeFileSync('lint-results.jsonl', out);
+          " 2>/dev/null || echo "" > lint-results.jsonl
+
+          aft post-comment \
+            --diff "$DIFF" \
+            --lint-report lint-results.jsonl \
+            --pr ${{ github.event.pull_request.number }} \
+            --repo ${{ github.repository }}
