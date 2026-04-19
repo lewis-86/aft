@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import pytest
+from urllib.error import URLError
 
 from aft.cli.github import GitHubCommentPoster
 
@@ -33,7 +34,7 @@ class TestGitHubCommentPoster:
     def test_post_comment_exception(self):
         poster = GitHubCommentPoster(token="test-token", repo="owner/repo")
         with patch("aft.cli.github.urllib.request.urlopen") as mock_urlopen:
-            mock_urlopen.side_effect = Exception("Network error")
+            mock_urlopen.side_effect = URLError("Network error")
 
             result = poster.post_comment(pr_number=123, body="Test comment")
 

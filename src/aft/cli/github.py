@@ -18,7 +18,7 @@ class GitHubCommentPoster:
             request = urllib.request.Request(url, data=data, headers=headers, method="POST")
             with urllib.request.urlopen(request) as response:
                 return response.status == 201
-        except Exception:
+        except URLError:
             return False
 
     def _build_url(self, pr_number: int) -> str:
