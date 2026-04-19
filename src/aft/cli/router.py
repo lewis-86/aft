@@ -43,11 +43,7 @@ class DiffRouterResult:
 class DiffRouter:
     """Parses combined diff and routes files to appropriate analyzers."""
 
-    RULE_FILE_RE = re.compile(r"^\+\+\+ b/rules/([^/]+)/rule\.yaml$", re.MULTILINE)
-    SKILL_FILE_RE = re.compile(r"^\+\+\+ b/fixtures/.*\.md$", re.MULTILINE)
     RULE_DESIGN_RE = re.compile(r"^\+\+\+ b/rules/([^/]+)/DESIGN\.md$", re.MULTILINE)
-    RULE_TS_RE = re.compile(r"^\+\+\+ b/src/lint/rules/([^/]+)\.ts$", re.MULTILINE)
-    CODE_TS_RE = re.compile(r"^\+\+\+ b/src/", re.MULTILINE)
 
     def __init__(self, diff: str):
         self.diff = diff
@@ -67,6 +63,12 @@ class DiffRouter:
                     rule_id=rule_id,
                     diff=file_diff,
                     changed_fields=changed_fields,
+                ))
+            elif self._is_rule_design(file_path):
+                rule_id = self._extract_rule_id_from_design(file_path)
+                result.rule_changes.append(RuleFileChange(
+                    rule_id=rule_id,
+                    diff=file_diff,
                 ))
             elif self._is_skill_md(file_path):
                 skill_name = self._extract_skill_name(file_diff)
@@ -116,6 +118,13 @@ class DiffRouter:
 
     def _is_rule_yaml(self, path: str) -> bool:
         return bool(re.search(r"rules/[^/]+/rule\.yaml$", path))
+
+    def _is_rule_design(self, path: str) -> bool:
+        return bool(self.RULE_DESIGN_RE.search(path))
+
+    def _extract_rule_id_from_design(self, path: str) -> str:
+        match = self.RULE_DESIGN_RE.search(path)
+        return match.group(1) if match else "unknown"
 
     def _is_skill_md(self, path: str) -> bool:
         return path.endswith(".md") and ("fixtures/" in path or "skills/" in path)
