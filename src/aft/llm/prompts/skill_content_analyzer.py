@@ -24,16 +24,24 @@ Respond in the following JSON format:
   "recommendations": "Recommendations for improving testability"
 }"""
 
-    def build(self, skill_content: str, context: str = "") -> str:
+    def build(self, skill_diff: str, skill_name: str, lint_summary: str = "", context: str = "") -> str:
         """Build the full prompt for skill content analysis."""
         return f"""Analyze this Skill-Harness SKILL.md file:
+
+<skill_name>
+{skill_name}
+</skill_name>
 
 <context>
 {context or "(No additional context)"}
 </context>
 
-<skill_content>
-{skill_content}
-</skill_content>
+<skill_diff>
+{skill_diff}
+</skill_diff>
+
+<lint_summary>
+{lint_summary or "(No lint issues)"}
+</lint_summary>
 
 {json_response_format()}"""

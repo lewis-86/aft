@@ -28,16 +28,20 @@ Respond in the following JSON format:
   "recommendations": "Overall recommendations for improving test coverage"
 }"""
 
-    def build(self, rule_content: str, context: str = "") -> str:
+    def build(self, rule_diff: str, rule_id: str, context: str = "") -> str:
         """Build the full prompt for skill rule analysis."""
         return f"""Analyze this Skill-Harness rule.yaml file:
+
+<rule_id>
+{rule_id}
+</rule_id>
 
 <context>
 {context or "(No additional context)"}
 </context>
 
-<rule_content>
-{rule_content}
-</rule_content>
+<rule_diff>
+{rule_diff}
+</rule_diff>
 
 {json_response_format()}"""

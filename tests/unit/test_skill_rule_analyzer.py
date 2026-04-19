@@ -25,7 +25,7 @@ class TestSkillRuleAnalyzer:
         mock_client = MagicMock(spec=LLMClient)
         mock_client.complete = mock_complete
         analyzer = SkillRuleAnalyzer(llm_client=mock_client)
-        result = analyzer.analyze("rule: test")
+        result = analyzer.analyze("rule: test", "test_rule_id")
 
         assert "rule_summary" in result
         assert result["rule_summary"] == "Test rule"
@@ -40,11 +40,12 @@ class TestSkillRuleAnalyzer:
         mock_client = MagicMock(spec=LLMClient)
         mock_client.complete = mock_complete
         analyzer = SkillRuleAnalyzer(llm_client=mock_client)
-        analyzer.analyze("rule: test content", context="additional context")
+        analyzer.analyze("rule: test content", "test_rule_id", context="additional context")
 
         call_args = mock_complete.call_args
         prompt = call_args[1]["prompt"]
         assert "rule: test content" in prompt
+        assert "test_rule_id" in prompt
         assert "additional context" in prompt
 
     def test_parse_response_handles_markdown_json(self):

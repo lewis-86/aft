@@ -12,9 +12,9 @@ class SkillRuleAnalyzer:
         self.llm_client = llm_client or LLMClient()
         self.prompt_builder = SkillRuleAnalyzerPrompt()
 
-    def analyze(self, rule_content: str, context: str = "") -> dict[str, Any]:
+    def analyze(self, rule_diff: str, rule_id: str, context: str = "") -> dict[str, Any]:
         """Analyze a rule.yaml file and return structured results."""
-        prompt = self.prompt_builder.build(rule_content=rule_content, context=context)
+        prompt = self.prompt_builder.build(rule_diff=rule_diff, rule_id=rule_id, context=context)
         response = self.llm_client.complete(prompt=prompt, system=SkillRuleAnalyzerPrompt.SYSTEM_PROMPT)
         return self._parse_response(response)
 
